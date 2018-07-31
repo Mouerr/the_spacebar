@@ -32,18 +32,20 @@
                     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
                     <button class="btn btn-info my-2 my-sm-0" type="submit">Search</button>
                 </form>
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item dropdown" style="margin-right: 75px;">
-                        <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <img class="nav-profile-img rounded-circle" src="{{ asset('images/astronaut-profile.png') }}">
-                </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" href="#">Profile</a>
-                            <a class="dropdown-item" href="#">Create Post</a>
-                            <a class="dropdown-item" href="#">Logout</a>
-                        </div>
-                    </li>
-                </ul>
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item dropdown" style="margin-right: 75px;">
+                            <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <img class="nav-profile-img rounded-circle" src="{{ asset('images/astronaut-profile.png') }}">
+                    </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="#">Profile</a>
+                                <a class="dropdown-item" href="#">Create Post</a>
+                                <a class="dropdown-item" href="{{ path('logout') }}">Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                {% endif %}
             </div>
         </nav>
 
