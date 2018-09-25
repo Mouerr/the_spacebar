@@ -10,13 +10,14 @@ namespace App\Controller;
 
 
 use App\Entity\Article;
+use App\Entity\User;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentRepository;
 use App\Service\MarkdownHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Nexy\Slack\Client;
 use Psr\Log\LoggerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,18 +29,32 @@ class ArticleController extends AbstractController
     public function __construct(Client $slack)
     {
 
-}
+    }
 
     /**
      * @Route("/", name="app_homepage")
      */
     public function homepage(ArticleRepository $repository)
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+       // $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $articles = $repository->findAllPublishedOrderedByNewest();
 
         return $this->render('article/homepage.html.twig', [
             'articles' => $articles,
         ]);
+    }
+
+    /**
+     * @Route("/users/{username}", name="user_view")
+     */
+    public function viewUserAction(User $user)
+    {
+        if (!$this->isGranted('USER_VIEW', $user)) {
+            throw $this->createAccessDeniedException('NO!');
+        }
+        dump('Access granted!', $user);die;
     }
 
     /**
@@ -49,7 +64,7 @@ class ArticleController extends AbstractController
     {
 
         $article->getSlug();
-
+            $markdownHelper->parse('bacon');
         //dump($article);die;
         //$comments = $article->getComments();
         //dump($comments);die;
@@ -66,7 +81,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/news/{slug}/heart",name="article_toggle_heart", methods={"POST"})
      */
-    public function toggleArticleHeart(Article $article, LoggerInterface $logger,EntityManagerInterface $em)
+    public function toggleArticleHeart(Article $article, LoggerInterface $logger, EntityManagerInterface $em)
     {
 
         $article->incrementHeartCount();

@@ -131,15 +131,6 @@
     "monolog/monolog": {
         "version": "1.23.0"
     },
-    "nelmio/security-bundle": {
-        "version": "2.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "2.4",
-            "ref": "65726efb67ff51d89de38195bc0d230fa811f64d"
-        }
-    },
     "nexylan/slack": {
         "version": "v2.0.0"
     },
@@ -154,9 +145,6 @@
     },
     "ocramius/proxy-manager": {
         "version": "2.2.0"
-    },
-    "paragonie/random_compat": {
-        "version": "v2.0.17"
     },
     "php-http/cache-plugin": {
         "version": "v1.5.0"
@@ -332,9 +320,6 @@
     "symfony/intl": {
         "version": "v4.1.2"
     },
-    "symfony/lts": {
-        "version": "4-dev"
-    },
     "symfony/maker-bundle": {
         "version": "1.0",
         "recipe": {
@@ -475,9 +460,6 @@
     },
     "twig/twig": {
         "version": "v2.4.6"
-    },
-    "ua-parser/uap-php": {
-        "version": "v3.5.0"
     },
     "zendframework/zend-code": {
         "version": "3.3.0"
