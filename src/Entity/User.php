@@ -46,7 +46,7 @@ class User implements UserInterface, \Serializable
      * The below length depends on the "algorithm" you use for encoding
      * the password, but this works well with bcrypt.
      *
-     * @ORM\Column(type="string", length=64)
+     * @ORM\Column(type="string", length=255)
      */
     private $password;
 
@@ -57,7 +57,7 @@ class User implements UserInterface, \Serializable
 
     public function __construct()
     {
-        $this->roles = array('ROLE_USER');
+        $this->roles = ['ROLE_USER','ROLE_ADMIN'];
     }
 
     // other properties and methods

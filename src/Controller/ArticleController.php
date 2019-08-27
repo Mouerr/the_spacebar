@@ -37,7 +37,7 @@ class ArticleController extends AbstractController
     public function homepage(ArticleRepository $repository)
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-       // $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        // $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $articles = $repository->findAllPublishedOrderedByNewest();
 
@@ -54,7 +54,8 @@ class ArticleController extends AbstractController
         if (!$this->isGranted('USER_VIEW', $user)) {
             throw $this->createAccessDeniedException('NO!');
         }
-        dump('Access granted!', $user);die;
+        dump('Access granted!', $user);
+        die;
     }
 
     /**
@@ -64,7 +65,7 @@ class ArticleController extends AbstractController
     {
 
         $article->getSlug();
-            $markdownHelper->parse('bacon');
+        $markdownHelper->parse('bacon');
         //dump($article);die;
         //$comments = $article->getComments();
         //dump($comments);die;
