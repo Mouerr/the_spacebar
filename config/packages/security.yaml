@@ -32,12 +32,18 @@ security:
             http_basic: ~
             provider: db_user_provider
             form_login:
-                login_path: login
-                check_path: login
+                login_path: app_login
+                check_path: app_login
                 default_target_path: /
             logout:
-                path:   /logout
+                path:   app_logout
                 target: /
+            remember_me:
+                secret:   '%kernel.secret%'
+                lifetime: 2592000
+            guard:
+                authenticators:
+                    - App\Security\LoginFormAuthenticator
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -50,5 +56,5 @@ security:
     access_control:
          - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
          - { path: ^/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-         - { path: ^/admin/comment, roles: ROLE_ADMIN }
+         - { path: ^/admin, roles: ROLE_ADMIN }
          - { path: ^/, roles: ROLE_USER }

@@ -3,144 +3,128 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * @ORM\Table(name="app_users")
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @ORM\Entity
- * @UniqueEntity(fields="email", message="Email already taken")
- * @UniqueEntity(fields="username", message="Username already taken")
  */
-class User implements UserInterface, \Serializable
+class User implements UserInterface
 {
     /**
-     * @ORM\Id
+     * @ORM\Id()
+     * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     * @Assert\NotBlank()
-     * @Assert\Email()
+     * @ORM\Column(type="string", length=180, unique=true)
      */
     private $email;
 
     /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     * @Assert\NotBlank()
+     * @ORM\Column(type="json")
      */
-    private $username;
+    private $roles = [];
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\Length(max=4096)
-     */
-    private $plainPassword;
-
-    /**
-     * The below length depends on the "algorithm" you use for encoding
-     * the password, but this works well with bcrypt.
-     *
-     * @ORM\Column(type="string", length=255)
+     * @var string The hashed password
+     * @ORM\Column(type="string")
      */
     private $password;
 
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="string", length=255)
      */
-    private $roles;
+    private $firstName;
 
-    public function __construct()
+    public function getId(): ?int
     {
-        $this->roles = ['ROLE_USER','ROLE_ADMIN'];
+        return $this->id;
     }
 
-    // other properties and methods
-
-    public function getEmail()
+    public function getEmail(): ?string
     {
         return $this->email;
     }
 
-    public function setEmail($email)
+    public function setEmail(string $email): self
     {
         $this->email = $email;
+
+        return $this;
     }
 
-    public function getUsername()
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUsername(): string
     {
-        return $this->username;
+        return (string) $this->email;
     }
 
-    public function setUsername($username)
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
     {
-        $this->username = $username;
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
     }
 
-    public function getPlainPassword()
+    public function setRoles(array $roles): self
     {
-        return $this->plainPassword;
+        $this->roles = $roles;
+
+        return $this;
     }
 
-    public function setPlainPassword($password)
+    /**
+     * @see UserInterface
+     */
+    public function getPassword(): string
     {
-        $this->plainPassword = $password;
+        return (string) $this->password;
     }
 
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    public function setPassword($password)
+    public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
     }
 
+    /**
+     * @see UserInterface
+     */
     public function getSalt()
     {
-        // The bcrypt and argon2i algorithms don't require a separate salt.
-        // You *may* need a real salt if you choose a different encoder.
-        return null;
+        // not needed when using the "bcrypt" algorithm in security.yaml
     }
 
-    public function getRoles()
-    {
-        return $this->roles;
-    }
-
+    /**
+     * @see UserInterface
+     */
     public function eraseCredentials()
     {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 
-    /** @see \Serializable::serialize() */
-    public function serialize()
+    public function getFirstName(): ?string
     {
-        return serialize(array(
-            $this->id,
-            $this->username,
-            $this->email,
-            $this->password,
-            // see section on salt below
-            // $this->salt,
-        ));
+        return $this->firstName;
     }
 
-    /** @see \Serializable::unserialize() */
-    public function unserialize($serialized)
+    public function setFirstName(string $firstName): self
     {
-        list (
-            $this->id,
-            $this->username,
-            $this->email,
-            $this->password,
-            // see section on salt below
-            // $this->salt
-        ) = unserialize($serialized, array('allowed_classes' => false));
+        $this->firstName = $firstName;
+
+        return $this;
     }
 }

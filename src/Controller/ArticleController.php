@@ -46,17 +46,17 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/users/{username}", name="user_view")
-     */
-    public function viewUserAction(User $user)
-    {
-        if (!$this->isGranted('USER_VIEW', $user)) {
-            throw $this->createAccessDeniedException('NO!');
-        }
-        dump('Access granted!', $user);
-        die;
-    }
+//    /**
+//     * @Route("/users/{username}", name="user_view")
+//     */
+//    public function viewUserAction(User $user)
+//    {
+//        if (!$this->isGranted('USER_VIEW', $user)) {
+//            throw $this->createAccessDeniedException('NO!');
+//        }
+//        dump('Access granted!', $user);
+//        die;
+//    }
 
     /**
      * @Route("/news/{slug}", name="article_show")
