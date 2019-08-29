@@ -514,7 +514,7 @@
         "files": [
             "config/packages/twig.yaml",
             "config/routes/dev/twig.yaml",
-            "templates/base.html.twig"
+            "templates/base/base.html.twig"
         ]
     },
     "symfony/validator": {

@@ -18,9 +18,9 @@ class AppExtension extends AbstractExtension implements ServiceSubscriberInterfa
      */
     private $container;
 
-    public function __construct(/*MarkdownHelper $markdownHelper*/ContainerInterface $container)
+    public function __construct(MarkdownHelper $markdownHelper,ContainerInterface $container)
     {
-        //$this->markdownHelper = $markdownHelper;
+        $this->markdownHelper = $markdownHelper;
         $this->container = $container;
     }
 

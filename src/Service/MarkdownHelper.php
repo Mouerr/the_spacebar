@@ -5,27 +5,32 @@ namespace App\Service;
 use Michelf\MarkdownInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\Security\Core\Security;
 
 class MarkdownHelper
 {
     private $cache;
     private $markdown;
     private $logger;
+    private $security;
     //private $isDebug;
 
-    public function __construct(AdapterInterface $cache, MarkdownInterface $markdown, LoggerInterface $logger/*, bool $isDebug*/)
+    public function __construct(AdapterInterface $cache, MarkdownInterface $markdown, LoggerInterface $logger, Security $security/*, bool $isDebug*/)
     {
 
         $this->cache = $cache;
         $this->markdown = $markdown;
         $this->logger = $logger;
         //$this->isDebug = $isDebug;
+        $this->security = $security;
     }
 
     public function parse(string $source): string
     {
-        if ($source == 'bacon') {
-            $this->logger->info('They are talking about bacon again!');
+        if (stripos($source, 'bacon') !== false) {
+            $this->logger->info('They are talking about bacon again!', [
+                'user' => $this->security->getUser()
+            ]);
         }
 
         // skip caching entirely in debug
@@ -33,7 +38,7 @@ class MarkdownHelper
             return $this->markdown->transform($source);
         }*/
 
-        $item = $this->cache->getItem('markdown_'.md5($source));
+        $item = $this->cache->getItem('markdown_' . md5($source));
         if (!$item->isHit()) {
             $item->set($this->markdown->transform($source));
             $this->cache->save($item);
