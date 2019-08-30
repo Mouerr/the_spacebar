@@ -3,8 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Article;
-use App\Entity\Comment;
-use App\Entity\Tag;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -22,14 +20,9 @@ class ArticleFixtures extends BaseFixture implements DependentFixtureInterface
         'lightspeed.png',
     ];
 
-    private static $articleAuthors = [
-        'Mike Ferengi',
-        'Amy Oort',
-    ];
-
-    public function loadData(ObjectManager $manager)
+    protected function loadData(ObjectManager $manager)
     {
-        $this->createMany(10,'article', function($i) {
+        $this->createMany(10, 'main_articles', function($count) use ($manager) {
             $article = new Article();
             $article->setTitle($this->faker->randomElement(self::$articleTitles))
                 ->setSlug($this->faker->slug)
@@ -58,16 +51,13 @@ EOF
                 $article->setPublishedAt($this->faker->dateTimeBetween('-100 days', '-1 days'));
             }
 
-            $article->setAuthor($this->faker->randomElement(self::$articleAuthors))
+            $article->setAuthor($this->getRandomReference('main_users'))
                 ->setHeartCount($this->faker->numberBetween(5, 100))
                 ->setImageFilename($this->faker->randomElement(self::$articleImages))
             ;
 
-            $tags = $this->getRandomReferences('tag', $this->faker->numberBetween(0, 5));
-            //dump($tags);die();
+            $tags = $this->getRandomReferences('main_tags', $this->faker->numberBetween(0, 5));
             foreach ($tags as $tag) {
-//                $tag->getName();
-//                dump($tag);
                 $article->addTag($tag);
             }
 
@@ -81,6 +71,7 @@ EOF
     {
         return [
             TagFixture::class,
+            UserFixture::class,
         ];
     }
 }
