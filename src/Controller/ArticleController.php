@@ -84,7 +84,7 @@ class ArticleController extends AbstractController
      */
     public function toggleArticleHeart(Article $article, LoggerInterface $logger, EntityManagerInterface $em)
     {
-
+        $logger->info('inncrease heart by '.$this->getUser()->getEmail());
         $article->incrementHeartCount();
         $em->flush();
 

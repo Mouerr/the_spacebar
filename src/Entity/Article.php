@@ -76,6 +76,16 @@ class Article
      */
     private $author;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $location;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $specificLocationName;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
@@ -266,5 +276,31 @@ class Article
                 ->atPath('title')
                 ->addViolation();
         }
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
+        if (!$this->location || $this->location === 'interstellar_space') {
+            $this->setSpecificLocationName(null);
+        }
+        return $this;
+    }
+
+    public function getSpecificLocationName(): ?string
+    {
+        return $this->specificLocationName;
+    }
+
+    public function setSpecificLocationName(?string $specificLocationName): self
+    {
+        $this->specificLocationName = $specificLocationName;
+
+        return $this;
     }
 }

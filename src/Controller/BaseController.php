@@ -7,7 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 /**
  * @method User|null getUser()
  */
-class BaseController extends AbstractController
+abstract class BaseController extends AbstractController
 {
 
 }
