@@ -1,0 +1,14 @@
+{{ form_start(articleForm) }}
+    {{ form_row(articleForm.title, {
+        label: 'Article title'
+    }) }}
+    {{ form_row(articleForm.author, {
+        attr: {class: 'js-user-autocomplete'}
+    }) }}
+    {{ form_row(articleForm.content) }}
+    {{ form_row(articleForm.slug) }}
+        {% if articleForm.publishedAt is defined %}
+            {{ form_row(articleForm.publishedAt) }}
+        {% endif %}
+<button type="submit" class="btn btn-primary">{{ button_text }}</button>
+{{ form_end(articleForm) }}
