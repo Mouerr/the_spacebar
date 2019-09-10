@@ -8,6 +8,7 @@
         "knplabs/knp-markdown-bundle": "^1.7",
         "knplabs/knp-paginator-bundle": "^4.0",
         "knplabs/knp-time-bundle": "^1.9",
+        "liip/imagine-bundle": "^2.1",
         "nexylan/slack-bundle": "2.2.0",
         "php-http/guzzle6-adapter": "^2.0",
         "sensio/framework-extra-bundle": "5.4.1",
