@@ -2,6 +2,11 @@
     {{ form_row(articleForm.title, {
         label: 'Article title'
     }) }}
+        {{ form_row(articleForm.imageFile, {
+            attr: {
+                'placeholder': 'Select an article image'
+            }
+        }) }}
     {{ form_row(articleForm.author, {
         attr: {class: 'js-user-autocomplete'}
     }) }}

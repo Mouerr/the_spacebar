@@ -4,11 +4,12 @@ namespace App\Twig;
 
 
 use App\Service\MarkdownHelper;
+use App\Service\UploaderHelper;
 use Psr\Container\ContainerInterface;
+use Symfony\Contracts\Service\ServiceSubscriberInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
-use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 class AppExtension extends AbstractExtension implements ServiceSubscriberInterface
 {
@@ -24,6 +25,13 @@ class AppExtension extends AbstractExtension implements ServiceSubscriberInterfa
         $this->container = $container;
     }
 
+    public function getFunctions(): array
+    {
+        return [
+            new TwigFunction('uploaded_asset', [$this, 'getUploadedAssetPath'])
+        ];
+    }
+
     public function getFilters(): array
     {
         return [
@@ -35,32 +43,20 @@ class AppExtension extends AbstractExtension implements ServiceSubscriberInterfa
     public function processMarkdown($value)
     {
         return $this->container->get(MarkdownHelper::class)->parse($value);
-        //return $this->markdownHelper->parse($value);
-        //return strtoupper($value);
     }
 
-    /**
-     * Returns an array of service types required by such instances, optionally keyed by the service names used internally.
-     *
-     * For mandatory dependencies:
-     *
-     *  * array('logger' => 'Psr\Log\LoggerInterface') means the objects use the "logger" name
-     *    internally to fetch a service which must implement Psr\Log\LoggerInterface.
-     *  * array('Psr\Log\LoggerInterface') is a shortcut for
-     *  * array('Psr\Log\LoggerInterface' => 'Psr\Log\LoggerInterface')
-     *
-     * otherwise:
-     *
-     *  * array('logger' => '?Psr\Log\LoggerInterface') denotes an optional dependency
-     *  * array('?Psr\Log\LoggerInterface') is a shortcut for
-     *  * array('Psr\Log\LoggerInterface' => '?Psr\Log\LoggerInterface')
-     *
-     * @return array The required service types, optionally keyed by service names
-     */
+    public function getUploadedAssetPath(string $path): string
+    {
+        return $this->container
+            ->get(UploaderHelper::class)
+            ->getPublicPath($path);
+    }
+
     public static function getSubscribedServices()
     {
         return [
             MarkdownHelper::class,
+            UploaderHelper::class,
         ];
     }
 }
