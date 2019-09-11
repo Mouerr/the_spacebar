@@ -10,6 +10,7 @@
         "knplabs/knp-time-bundle": "^1.9",
         "liip/imagine-bundle": "^2.1",
         "nexylan/slack-bundle": "2.2.0",
+        "oneup/flysystem-bundle": "^3.1",
         "php-http/guzzle6-adapter": "^2.0",
         "sensio/framework-extra-bundle": "5.4.1",
         "sensiolabs/security-checker": "6.0.*",
