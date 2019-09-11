@@ -6,6 +6,8 @@
 parameters:
     cache_adapter: cache.adapter.apcu
     locale: 'en'
+    uploads_dir_name: 'uploads'
+    uploads_base_url: '%env(SITE_BASE_URL)%/%uploads_dir_name%'
 
 services:
     # default configuration for services in *this* file
@@ -20,6 +22,7 @@ services:
             $markdownLogger: '@monolog.logger.markdown'
             $isDebug: '%kernel.debug%'
             $publicUploadsFilesystem: '@oneup_flysystem.public_uploads_filesystem_filesystem'
+            $uploadedAssetsBaseUrl: '%uploads_base_url%'
 
     # custom aliases for autowiring
     #Nexy\Slack\Client: '@nexy_slack.client'
