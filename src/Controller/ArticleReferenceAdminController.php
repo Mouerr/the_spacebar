@@ -10,11 +10,12 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ArticleReferenceAdminController extends BaseController
@@ -51,13 +52,7 @@ class ArticleReferenceAdminController extends BaseController
         );
 
         if ($violations->count() > 0) {
-            /** @var ConstraintViolation $violation */
-            $violation = $violations[0];
-            $this->addFlash('error', $violation->getMessage());
-
-            return $this->redirectToRoute('admin_article_edit', [
-                'id' => $article->getId(),
-            ]);
+            return $this->json($violations, 400);
         }
 
         $filename = $uploaderHelper->uploadArticleReference($uploadedFile);
@@ -70,9 +65,60 @@ class ArticleReferenceAdminController extends BaseController
         $entityManager->persist($articleReference);
         $entityManager->flush();
 
-        return $this->redirectToRoute('admin_article_edit', [
-            'id' => $article->getId(),
-        ]);
+        return $this->json(
+            $articleReference,
+            201,
+            [],
+            [
+                'groups' => ['main']
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/article/{id}/references", methods="GET", name="admin_article_list_references")
+     * @IsGranted("MANAGE", subject="article")
+     */
+    public function getArticleReferences(Article $article)
+    {
+        return $this->json(
+            $article->getArticleReferences(),
+            200,
+            [],
+            [
+                'groups' => ['main']
+            ]
+        );
+    }
+
+    /**
+     * @Route("/admin/article/{id}/references/reorder", methods="POST", name="admin_article_reorder_references")
+     * @IsGranted("MANAGE", subject="article")
+     */
+    public function reorderArticleReferences(Article $article, Request $request, EntityManagerInterface $entityManager)
+    {
+        $orderedIds = json_decode($request->getContent(), true);
+
+        if ($orderedIds === null) {
+            return $this->json(['detail' => 'Invalid body'], 400);
+        }
+
+        // from (position)=>(id) to (id)=>(position)
+        $orderedIds = array_flip($orderedIds);
+        foreach ($article->getArticleReferences() as $reference) {
+            $reference->setPosition($orderedIds[$reference->getId()]);
+        }
+
+        $entityManager->flush();
+
+        return $this->json(
+            $article->getArticleReferences(),
+            200,
+            [],
+            [
+                'groups' => ['main']
+            ]
+        );
     }
 
     /**
@@ -97,5 +143,57 @@ class ArticleReferenceAdminController extends BaseController
         $response->headers->set('Content-Disposition', $disposition);
 
         return $response;
+    }
+
+    /**
+     * @Route("/admin/article/references/{id}", name="admin_article_delete_reference", methods={"DELETE"})
+     */
+    public function deleteArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper, EntityManagerInterface $entityManager)
+    {
+        $article = $reference->getArticle();
+        $this->denyAccessUnlessGranted('MANAGE', $article);
+
+        $entityManager->remove($reference);
+        $entityManager->flush();
+
+        $uploaderHelper->deleteFile($reference->getFilePath(), false);
+
+        return new Response(null, 204);
+    }
+
+    /**
+     * @Route("/admin/article/references/{id}", name="admin_article_update_reference", methods={"PUT"})
+     */
+    public function updateArticleReference(ArticleReference $reference, EntityManagerInterface $entityManager, SerializerInterface $serializer, Request $request, ValidatorInterface $validator)
+    {
+        $article = $reference->getArticle();
+        $this->denyAccessUnlessGranted('MANAGE', $article);
+
+        $serializer->deserialize(
+            $request->getContent(),
+            ArticleReference::class,
+            'json',
+            [
+                'object_to_populate' => $reference,
+                'groups' => ['input']
+            ]
+        );
+
+        $violations = $validator->validate($reference);
+        if ($violations->count() > 0) {
+            return $this->json($violations, 400);
+        }
+
+        $entityManager->persist($reference);
+        $entityManager->flush();
+
+        return $this->json(
+            $reference,
+            200,
+            [],
+            [
+                'groups' => ['main']
+            ]
+        );
     }
 }
