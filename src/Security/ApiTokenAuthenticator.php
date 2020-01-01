@@ -30,9 +30,9 @@ class ApiTokenAuthenticator extends AbstractGuardAuthenticator
     public function supports(Request $request)
     {
         // look for header "Authorization: Bearer <token>" or login authentication
-        return $request->headers->has('Authorization')
-            && 0 === strpos($request->headers->get('Authorization'), 'Bearer ')
-            || strpos($request->headers->get('referer'), '/login') !== false && $request->isMethod('POST');
+        return ($request->headers->has('Authorization')
+            && 0 === strpos($request->headers->get('Authorization'), 'Bearer '))
+            || (strpos($request->headers->get('referer'), '/login') !== false && $request->isMethod('POST'));
     }
 
     public function getCredentials(Request $request)
@@ -49,6 +49,7 @@ class ApiTokenAuthenticator extends AbstractGuardAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         if (is_array($credentials)) {
+            //TODO: check if email and password are valid before checking db
             $user = $this->userRepo->findOneBy([
                 'email' => $credentials['email']
             ]);
