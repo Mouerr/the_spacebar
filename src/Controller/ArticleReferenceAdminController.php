@@ -2,13 +2,16 @@
 
 namespace App\Controller;
 
+use App\Api\ArticleReferenceUploadApiModel;
 use App\Entity\Article;
 use App\Entity\ArticleReference;
 use App\Service\UploaderHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\HttpFoundation\File\File as FileObject;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -23,11 +26,37 @@ class ArticleReferenceAdminController extends BaseController
     /**
      * @Route("/admin/article/{id}/references", name="admin_article_add_reference", methods={"POST"})
      * @IsGranted("MANAGE", subject="article")
+     * @param Article $article
+     * @param Request $request
+     * @param UploaderHelper $uploaderHelper
+     * @param EntityManagerInterface $entityManager
+     * @param ValidatorInterface $validator
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
      */
-    public function uploadArticleReference(Article $article, Request $request, UploaderHelper $uploaderHelper, EntityManagerInterface $entityManager, ValidatorInterface $validator)
+    public function uploadArticleReference(Article $article, Request $request, UploaderHelper $uploaderHelper, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
     {
-        /** @var UploadedFile $uploadedFile */
-        $uploadedFile = $request->files->get('reference');
+        if ($request->headers->get('Content-Type') === 'application/json') {
+            /** @var ArticleReferenceUploadApiModel $uploadApiModel */
+            $uploadApiModel = $serializer->deserialize(
+                $request->getContent(),
+                ArticleReferenceUploadApiModel::class,
+                'json'
+            );
+            $violations = $validator->validate($uploadApiModel);
+            if ($violations->count() > 0) {
+                return $this->json($violations, 400);
+            }
+
+            $tmpPath = sys_get_temp_dir() . '/sf_upload' . uniqid('', true);
+            file_put_contents($tmpPath, $uploadApiModel->getDecodedData());
+            $uploadedFile = new FileObject($tmpPath);
+            $originalFilename = $uploadApiModel->filename;
+        } else {
+            /** @var UploadedFile $uploadedFile */
+            $uploadedFile = $request->files->get('reference');
+            $originalFilename = $uploadedFile->getClientOriginalName();
+        }
 
         $violations = $validator->validate(
             $uploadedFile,
@@ -59,8 +88,12 @@ class ArticleReferenceAdminController extends BaseController
 
         $articleReference = new ArticleReference($article);
         $articleReference->setFilename($filename);
-        $articleReference->setOriginalFilename($uploadedFile->getClientOriginalName() ?? $filename);
+        $articleReference->setOriginalFilename($originalFilename ?? $filename);
         $articleReference->setMimeType($uploadedFile->getMimeType() ?? 'application/octet-stream');
+
+        if (is_file($uploadedFile->getPathname())) {
+            unlink($uploadedFile->getPathname());
+        }
 
         $entityManager->persist($articleReference);
         $entityManager->flush();
@@ -78,8 +111,10 @@ class ArticleReferenceAdminController extends BaseController
     /**
      * @Route("/admin/article/{id}/references", methods="GET", name="admin_article_list_references")
      * @IsGranted("MANAGE", subject="article")
+     * @param Article $article
+     * @return JsonResponse
      */
-    public function getArticleReferences(Article $article)
+    public function getArticleReferences(Article $article): JsonResponse
     {
         return $this->json(
             $article->getArticleReferences(),
@@ -94,8 +129,12 @@ class ArticleReferenceAdminController extends BaseController
     /**
      * @Route("/admin/article/{id}/references/reorder", methods="POST", name="admin_article_reorder_references")
      * @IsGranted("MANAGE", subject="article")
+     * @param Article $article
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
      */
-    public function reorderArticleReferences(Article $article, Request $request, EntityManagerInterface $entityManager)
+    public function reorderArticleReferences(Article $article, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $orderedIds = json_decode($request->getContent(), true);
 
@@ -123,13 +162,16 @@ class ArticleReferenceAdminController extends BaseController
 
     /**
      * @Route("/admin/article/references/{id}/download", name="admin_article_download_reference", methods={"GET"})
+     * @param ArticleReference $reference
+     * @param UploaderHelper $uploaderHelper
+     * @return StreamedResponse
      */
-    public function downloadArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper)
+    public function downloadArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper): StreamedResponse
     {
         $article = $reference->getArticle();
         $this->denyAccessUnlessGranted('MANAGE', $article);
 
-        $response = new StreamedResponse(function() use ($reference, $uploaderHelper) {
+        $response = new StreamedResponse(function () use ($reference, $uploaderHelper) {
             $outputStream = fopen('php://output', 'wb');
             $fileStream = $uploaderHelper->readStream($reference->getFilePath(), false);
 
@@ -147,8 +189,13 @@ class ArticleReferenceAdminController extends BaseController
 
     /**
      * @Route("/admin/article/references/{id}", name="admin_article_delete_reference", methods={"DELETE"})
+     * @param ArticleReference $reference
+     * @param UploaderHelper $uploaderHelper
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws \Exception
      */
-    public function deleteArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper, EntityManagerInterface $entityManager)
+    public function deleteArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper, EntityManagerInterface $entityManager): Response
     {
         $article = $reference->getArticle();
         $this->denyAccessUnlessGranted('MANAGE', $article);
@@ -163,8 +210,14 @@ class ArticleReferenceAdminController extends BaseController
 
     /**
      * @Route("/admin/article/references/{id}", name="admin_article_update_reference", methods={"PUT"})
+     * @param ArticleReference $reference
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
      */
-    public function updateArticleReference(ArticleReference $reference, EntityManagerInterface $entityManager, SerializerInterface $serializer, Request $request, ValidatorInterface $validator)
+    public function updateArticleReference(ArticleReference $reference, EntityManagerInterface $entityManager, SerializerInterface $serializer, Request $request, ValidatorInterface $validator): JsonResponse
     {
         $article = $reference->getArticle();
         $this->denyAccessUnlessGranted('MANAGE', $article);
